@@ -1,15 +1,10 @@
-# nb = my_input_fn(dps_train)
-# with tf.Session() as sess:
-#     print sess.run(nb)
-#     print sess.run(nb)
-# print dps_train
-
 import tensorflow as tf
 import collections
 import os
 import urllib
 import sys
 
+# Check that we have correct TensorFlow version installed
 tf_version = tf.__version__
 print("TensorFlow version: {}".format(tf_version))
 assert "1.3" <= tf_version, "TensorFlow r1.3 or later is needed"
@@ -17,8 +12,7 @@ assert "1.3" <= tf_version, "TensorFlow r1.3 or later is needed"
 # Windows users: You only need to change PATH, rest is platform independent
 PATH = "/tmp/tf_dataset_and_estimator_apis"
 
-a = PATH + os.sep
-
+# Load Training and Test dataset files
 PATH_DATASET = PATH +os.sep + "dataset"
 FILE_TRAIN =   PATH_DATASET + os.sep + "boston_train.csv"
 FILE_TEST =    PATH_DATASET + os.sep + "boston_test.csv"
@@ -39,6 +33,7 @@ downloadDataset(URL_TEST, FILE_TEST)
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
+# The CSV fields in the files
 dataset_fields = collections.OrderedDict([
     ('CrimeRate',           [0.]),
     ('LargeLotsRate',       [0.]),
@@ -52,6 +47,8 @@ dataset_fields = collections.OrderedDict([
     ('MarketValueIn10k',    [0.])
 ])
 
+# Create an input function reading a file using the Dataset API
+# Then provide the results to the Estimator API
 def my_input_fn(file_path, repeat_count):
     def decode_csv(line):
         parsed = tf.decode_csv(line, list(dataset_fields.values()))
