@@ -46,20 +46,26 @@ dataset_fields = collections.OrderedDict([
 def my_input_fn(file_path, repeat_count):
     def decode_csv(line):
         parsed = tf.decode_csv(line, list(dataset_fields.values()))
-        return dict(zip(dataset_fields.keys(), parsed))
+        features = parsed[:-1]
+        label = parsed[-1:]
+        return dict(zip(dataset_fields.keys(), features)), label
 
     dataset = (
         tf.contrib.data.TextLineDataset(file_path) # Read text line file
             .skip(1) # Skip header row
             .map(decode_csv) # Transform each elem by applying decode_csv fn
-            .shuffle(buffer_size=256) # Obs: buffer_size is read into memory
+            .shuffle(buffer_size=1) # Obs: buffer_size is read into memory
             .repeat(repeat_count) #
             .batch(32)) # Batch size to use
     iterator = dataset.make_one_shot_iterator()
-    batch_features = iterator.get_next()
-    batch_labels = batch_features.pop('IrisFlowerType')
+    batch_features, batch_labels = iterator.get_next()
     return batch_features, batch_labels
 
+# nb = my_input_fn(FILE_TRAIN, 1)
+# with tf.Session() as sess:
+#     nr = sess.run(nb)
+#     print len(nr[1])
+# sys.exit()
 
 # Create the feature_columns, which specifies the input to our model
 # All our input features are numeric, so use numeric_column for each one
