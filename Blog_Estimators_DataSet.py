@@ -43,29 +43,25 @@ dataset_fields = collections.OrderedDict([
 
 # Create an input function reading a file using the Dataset API
 # Then provide the results to the Estimator API
-def my_input_fn(file_path, repeat_count):
+def my_input_fn(file_path, perform_shuffle=False, repeat_count=1):
     def decode_csv(line):
-        parsed = tf.decode_csv(line, list(dataset_fields.values()))
-        features = parsed[:-1]
-        label = parsed[-1:]
+        parsed_line = tf.decode_csv(line, list(dataset_fields.values()))
+        label = parsed_line[-1:] # Last element is the label
+        del parsed_line[-1] # Delete last element
+        features = parsed_line # Everything but last elements are the features
         return dict(zip(dataset_fields.keys(), features)), label
 
-    dataset = (
-        tf.contrib.data.TextLineDataset(file_path) # Read text line file
-            .skip(1) # Skip header row
-            .map(decode_csv) # Transform each elem by applying decode_csv fn
-            .shuffle(buffer_size=1) # Obs: buffer_size is read into memory
-            .repeat(repeat_count) #
-            .batch(32)) # Batch size to use
+    dataset = (tf.contrib.data.TextLineDataset(file_path) # Read text file
+        .skip(1) # Skip header row
+        .map(decode_csv)) # Transform each elem by applying decode_csv fn
+    if perform_shuffle:
+        # Randomizes input using a window of 256 elements (read into memory)
+        dataset = dataset.shuffle(buffer_size=256)
+    dataset = dataset.repeat(repeat_count) # Repeats dataset this # times
+    dataset = dataset.batch(32)  # Batch size to use
     iterator = dataset.make_one_shot_iterator()
     batch_features, batch_labels = iterator.get_next()
     return batch_features, batch_labels
-
-# nb = my_input_fn(FILE_TRAIN, 1)
-# with tf.Session() as sess:
-#     nr = sess.run(nb)
-#     print len(nr[1])
-# sys.exit()
 
 # Create the feature_columns, which specifies the input to our model
 # All our input features are numeric, so use numeric_column for each one
