@@ -64,13 +64,12 @@ def my_input_fn(file_path, perform_shuffle=False, repeat_count=1):
 
 next_batch = my_input_fn(FILE_TRAIN, True) # Will return 32 random elements
 
-
 # Create the feature_columns, which specifies the input to our model
 # All our input features are numeric, so use numeric_column for each one
 feature_columns = [tf.feature_column.numeric_column(k) for k in feature_names]
 
 # Create a deep neural network regression classifier
-# Use the DNNClassifier canned estimator
+# Use the DNNClassifier pre-made estimator
 classifier = tf.estimator.DNNClassifier(
     feature_columns=feature_columns, # The input features to our model
     hidden_units=[10, 10], # Two layers, each with 10 neurons
@@ -90,6 +89,16 @@ evaluate_result = classifier.evaluate(
 print("Evaluation results")
 for key in evaluate_result:
     print("   {}, was: {}".format(key, evaluate_result[key]))
+
+# Predict the type of some Iris flowers.
+# Let's predict the examples in FILE_TEST, repeat only once.
+predict_results = classifier.predict(
+    input_fn=lambda: my_input_fn(FILE_TEST, False, 1))
+print("Predictions on test file")
+for prediction in predict_results:
+   # Will print the predicted class, i.e: 0, 1, or 2 if the prediction
+   # is Iris Sentosa, Vericolor, Virginica, respectively.
+   print prediction["class_ids"][0]
 
 # Let create a dataset for prediction
 # We've taken the first 3 examples in FILE_TEST
@@ -111,6 +120,7 @@ def new_input_fn():
 predict_results = classifier.predict(input_fn=new_input_fn)
 
 # Print results
+print("Predictions on memory")
 for idx, prediction in enumerate(predict_results):
     type = prediction["class_ids"][0] # Get the predicted class (index)
     if type == 0:
