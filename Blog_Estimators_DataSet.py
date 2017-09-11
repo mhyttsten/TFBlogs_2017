@@ -32,24 +32,23 @@ downloadDataset(URL_TEST, FILE_TEST)
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-# The CSV fields in the files
-dataset_fields = collections.OrderedDict([
-    ('SepalLength',    [0.]), # tf.float32
-    ('SepalWidth',     [0.]), # tf.float32
-    ('PetalLength',    [0.]), # tf.float32
-    ('PetalWidth',     [0.]), # tf.float32
-    ('IrisFlowerType', [0])   # tf.int32
-])
+# The CSV features in our training & test data
+feature_names = [
+    'SepalLength',
+    'SepalWidth',
+    'PetalLength',
+    'PetalWidth']
 
 # Create an input function reading a file using the Dataset API
 # Then provide the results to the Estimator API
 def my_input_fn(file_path, perform_shuffle=False, repeat_count=1):
     def decode_csv(line):
-        parsed_line = tf.decode_csv(line, list(dataset_fields.values()))
+        parsed_line = tf.decode_csv(line, [[0.], [0.], [0.], [0.], [0]])
         label = parsed_line[-1:] # Last element is the label
         del parsed_line[-1] # Delete last element
         features = parsed_line # Everything but last elements are the features
-        return dict(zip(dataset_fields.keys(), features)), label
+        d = dict(zip(feature_names, features)), label
+        return d
 
     dataset = (tf.contrib.data.TextLineDataset(file_path) # Read text file
         .skip(1) # Skip header row
@@ -63,14 +62,15 @@ def my_input_fn(file_path, perform_shuffle=False, repeat_count=1):
     batch_features, batch_labels = iterator.get_next()
     return batch_features, batch_labels
 
+next_batch = my_input_fn(FILE_TRAIN, True) # Will return 32 random elements
+
+
 # Create the feature_columns, which specifies the input to our model
 # All our input features are numeric, so use numeric_column for each one
-feature_names = dataset_fields.copy() # Create a list of our input features
-del feature_names['IrisFlowerType'] # Remove the label field
 feature_columns = [tf.feature_column.numeric_column(k) for k in feature_names]
 
 # Create a deep neural network regression classifier
-# Use the DNNRegressor canned estimator
+# Use the DNNClassifier canned estimator
 classifier = tf.estimator.DNNClassifier(
     feature_columns=feature_columns, # The input features to our model
     hidden_units=[10, 10], # Two layers, each with 10 neurons
@@ -79,16 +79,14 @@ classifier = tf.estimator.DNNClassifier(
 
 # Train our model, use the previously function my_input_fn
 # Input to training is a file with training example
-# Stop training after 2000 batches have been processed
+# Stop training after 8 iterations of train data (epochs)
 classifier.train(
-    input_fn=lambda: my_input_fn(FILE_TRAIN, None),
-    steps=2000)
+    input_fn=lambda: my_input_fn(FILE_TRAIN, True, 8))
 
 # Evaluate our model using the examples contained in FILE_TEST
 # Return value will contain evaluation_metrics such as: loss & average_loss
 evaluate_result = classifier.evaluate(
-    input_fn=lambda: my_input_fn(FILE_TEST, None),
-    steps=2000)
+    input_fn=lambda: my_input_fn(FILE_TEST, False, 4))
 print("Evaluation results")
 for key in evaluate_result:
     print("   {}, was: {}".format(key, evaluate_result[key]))
