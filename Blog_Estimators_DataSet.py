@@ -114,7 +114,7 @@ print("Predictions on test file")
 for prediction in predict_results:
    # Will print the predicted class, i.e: 0, 1, or 2 if the prediction
    # is Iris Sentosa, Vericolor, Virginica, respectively.
-   print prediction["class_ids"][0]
+   print(prediction["class_ids"][0])
 
 # Let create a dataset for prediction
 # We've taken the first 3 examples in FILE_TEST
