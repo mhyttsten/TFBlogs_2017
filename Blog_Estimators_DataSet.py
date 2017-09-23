@@ -19,7 +19,7 @@
 
 import tensorflow as tf
 import os
-import urllib
+from urllib.request import urlopen
 
 # Check that we have correct TensorFlow version installed
 tf_version = tf.__version__
@@ -39,8 +39,8 @@ def downloadDataset(url, file):
     if not os.path.exists(PATH_DATASET):
         os.makedirs(PATH_DATASET)
     if not os.path.exists(file):
-        data = urllib.urlopen(url).read()
-        with open(file, "w") as f:
+        data = urlopen(url).read()
+        with open(file, "wb") as f:
             f.write(data)
             f.close()
 downloadDataset(URL_TRAIN, FILE_TRAIN)
