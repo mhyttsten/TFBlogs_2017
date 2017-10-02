@@ -19,7 +19,11 @@
 
 import tensorflow as tf
 import os
-from urllib.request import urlopen
+import sys
+if sys.version_info < (3, 0, 0):
+    from urllib import urlopen
+else:
+    from urllib.request import urlopen
 
 # Check that we have correct TensorFlow version installed
 tf_version = tf.__version__
@@ -125,7 +129,6 @@ for prediction in predict_results:
 prediction_input = [[5.9, 3.0, 4.2, 1.5],  # -> 1, Iris Versicolor
                     [6.9, 3.1, 5.4, 2.1],  # -> 2, Iris Virginica
                     [5.1, 3.3, 1.7, 0.5]]  # -> 0, Iris Sentosa
-
 
 def new_input_fn():
     def decode(x):
