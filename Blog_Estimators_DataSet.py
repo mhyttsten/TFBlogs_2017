@@ -130,6 +130,7 @@ prediction_input = [[5.9, 3.0, 4.2, 1.5],  # -> 1, Iris Versicolor
                     [6.9, 3.1, 5.4, 2.1],  # -> 2, Iris Virginica
                     [5.1, 3.3, 1.7, 0.5]]  # -> 0, Iris Sentosa
 
+
 def new_input_fn():
     def decode(x):
         x = tf.split(x, 4)  # Need to split into our 4 features
